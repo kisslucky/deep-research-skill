@@ -6,9 +6,18 @@ Use the cheapest reliable access path first, then escalate only when needed.
 
 1. `memory-search`
 2. `multi-search-engine`
-3. direct fetch / normal webpage retrieval
-4. `web-access`
-5. `video-to-summary` for video URLs
+3. `linked-source-routing` when the user already supplied URLs
+4. direct fetch / normal webpage retrieval
+5. `web-access`
+6. `video-to-summary` for video URLs
+
+## Core Principle
+
+Static fetch is a convenience layer, not a truth layer.
+
+- Keep using direct fetch only if it returns the real page content.
+- If it returns a JS verification page, anti-bot placeholder, empty shell, or obviously partial data, that path has already failed.
+- When that happens, escalate to `web-access` CDP mode or use an alternate source family that exposes real HTML.
 
 ## URL Routing
 
@@ -16,10 +25,32 @@ Use the cheapest reliable access path first, then escalate only when needed.
 | --- | --- | --- |
 | normal webpage | direct fetch | `web-access` |
 | GitHub repo / docs | direct fetch or docs pages | `web-access` |
+| supplied URL with unknown behavior | `linked-source-routing` | direct fetch or `web-access` |
+| no-link research ask | `multi-search-engine` | `web-access` |
 | JS-heavy site | `web-access` | narrower source substitution |
 | anti-bot page | `web-access` | alternative public source |
 | video URL | `video-to-summary` | `web-access` page extraction |
 | login-gated page | collect access first, then `web-access` | ask for alternate public source |
+
+## Search Engine Routing
+
+Search result pages are not equal.
+
+- Google search pages often return JS verification or anti-bot challenges to static fetch tools.
+- If Google returns a challenge page, do not keep retrying static fetch.
+- Prefer Bing, official site search, docs search, or HTML-friendly community sources for discovery.
+- If the Google page itself is materially important, use `web-access` CDP mode.
+- `old.reddit.com` is often a better HTML-first community source than the modern Reddit shell when static retrieval matters.
+
+## Escalation Triggers
+
+Move from fetch to `web-access` CDP immediately when any of these are true:
+
+- the returned page asks for JavaScript execution before showing content
+- the returned page is a challenge, captcha, or verification wall
+- the visible browser page and fetched HTML clearly disagree
+- the task needs login, scrolling, clicking, transcript expansion, or dynamic pagination
+- important fields are known to be rendered client-side
 
 ## Private and Logged-In Sources
 
