@@ -20,6 +20,7 @@ Turn a vague research ask into a source-backed deliverable with clear conclusion
 
 - OpenClaw users can follow the named routing skills directly when those companion skills are installed.
 - Hermes users can apply the same workflow by mapping `memory-search` to local memory or notes search, `multi-search-engine` to `web_search`, and `web-access` to `web_extract` or browser tools when interaction is required.
+- `web_fetch` or plain fetch is a useful low-cost entry point for public pages, but it is not mandatory. If the fetch layer returns challenge HTML, placeholder shells, or obviously incomplete content, escalate instead of insisting on static retrieval.
 
 ## Core Rules
 
@@ -32,7 +33,7 @@ Turn a vague research ask into a source-backed deliverable with clear conclusion
 
 ## Research Controls
 
-Choose these three controls up front:
+Choose these six controls up front.
 
 ### 1. Time Budget
 
@@ -53,7 +54,25 @@ Choose these three controls up front:
 - `standard-report`: comparison, evidence, recommendation
 - `deep-report`: executive summary, evidence map, implications, risks, next steps
 
-If the user does not specify these controls, infer them and state the default you picked.
+### 4. Evidence Grade
+
+- `E1`: light verification, useful directional scan
+- `E2`: multi-source verification, fit for structured recommendation
+- `E3`: first-party plus practitioner/community plus counter-evidence, fit for decision support
+
+### 5. Strategy Standard
+
+- `operator`: practical how-to and implementation focus
+- `consulting`: hypothesis, evidence, tradeoff, recommendation
+- `board`: executive framing, option comparison, risk and timing
+
+### 6. Insight Strength
+
+- `I1`: facts and summary
+- `I2`: facts plus patterns and tradeoffs
+- `I3`: facts, patterns, second-order effects, blind spots, action path
+
+If the user does not specify these controls, infer them and state the defaults you picked.
 
 ## Skill Routing
 
@@ -63,11 +82,12 @@ Use the minimum toolchain that can complete the job:
 | --- | --- |
 | `memory-search` | find prior internal context and avoid duplicate work |
 | `multi-search-engine` | broad source discovery and quick source expansion |
+| `linked-source-routing` | classify user-supplied links and pick the right acquisition path before deep analysis starts |
 | `web-access` | hard-to-fetch, JS-heavy, anti-bot, or login-gated pages |
 | `video-to-summary` | video URLs that need transcription before analysis |
 | `browser-troubleshooting` | browser/CDP failures blocking source access |
 
-Use `web-access` only when plain fetch/search is not enough or the source is interaction-heavy.
+Prefer static search/fetch only when it returns the real page content. If the response is a JS verification page, anti-bot wall, empty shell, or visibly incomplete data, switch to `web-access` CDP mode or an alternate HTML-friendly source immediately instead of retrying the same fetch path.
 
 ## Preflight
 
@@ -78,8 +98,16 @@ Before the main run, confirm:
 3. whether cross-border access is required
 4. whether private or logged-in sources are needed
 5. whether the user wants a briefing, comparison, or deep report
+6. what evidence grade is needed
+7. what strategy standard fits the task
+8. what level of insight strength is expected
 
 If private or logged-in content is required, collect what is needed before the research run starts. Do not wait until you hit a login wall mid-task.
+
+Default control inference for common cases:
+- fast factual question → `S + T1 + briefing + E1 + operator + I1`
+- comparison or purchase choice → `M/L + T2 + standard-report + E2 + consulting + I2`
+- strategic decision / market-entry / globalization planning → `XL + T3 + deep-report + E3 + board + I3`
 
 ## Workflow
 
@@ -94,12 +122,14 @@ If private or logged-in content is required, collect what is needed before the r
 - start with broad search terms
 - expand into company docs, product docs, community discussion, and expert commentary
 - prioritize first-party sources when facts or specs matter
+- when the user already supplied URLs, run `linked-source-routing` first so acquisition is chosen before source collection expands
 
 ### 3. Collect and verify
 
 - read enough sources to meet the chosen budget and tier
 - cross-check any important claim across more than one source when possible
 - note source freshness and likely bias
+- if a static fetch layer returns only a challenge page or partial shell, treat that as an acquisition failure and escalate to `web-access` CDP or substitute the source family
 
 ### 4. Synthesize
 
@@ -126,9 +156,17 @@ Use these minimum output shapes:
 
 Every deliverable must expose at least one blind spot or uncertainty if the evidence is incomplete.
 
+For `T3` or `I3` work, also include:
+- what is fact vs inference vs open question
+- at least one counterpoint or failure case
+- second-order effects or downstream consequences
+- a concrete action path with sequencing
+- the most likely reason the recommendation could fail
+
 ## Failure Handling
 
 - If a source is blocked, retry with the next access tier instead of stopping.
+- If static fetch/search returns challenge HTML or incomplete data, do not keep retrying it. Escalate to `web-access` CDP or switch to a source that exposes real HTML.
 - If logged-in content is required, pause and request the exact missing access.
 - If source quality is weak, lower confidence and say why.
 - If the task is too broad for the requested budget, narrow scope rather than pretending depth.
